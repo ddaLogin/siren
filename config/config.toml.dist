@@ -1,0 +1,14 @@
+eshost = ".../_search"
+
+[http]
+port = ""
+
+[db]
+user=""
+pass=""
+name=""
+
+[telegram]
+host = "https://api.telegram.org"
+token = ""
+chatId = ""
