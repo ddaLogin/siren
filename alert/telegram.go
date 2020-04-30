@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type Config struct {
 	Token  string
 	Host   string
 	ChatId string
+	Proxy  string
 }
 
 // Ответ от телеграма
@@ -30,9 +32,9 @@ func InitTelegram(cfg Config) {
 
 // Отправить сообщение в чат
 func SendMessage(message string) {
-	url := config.Host + "/bot" + config.Token + "/sendMessage"
+	apiUrl := config.Host + "/bot" + config.Token + "/sendMessage"
 	query := []byte(`{"chat_id": "` + config.ChatId + `", "text": "` + message + `", "parse_mode": "Markdown"}`)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
+	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(query))
 	if err != nil {
 		log.Fatal("Error send telegram message. ", err)
 		return
@@ -41,7 +43,8 @@ func SendMessage(message string) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: time.Second * 10}
+	proxyUrl, err := url.Parse(config.Proxy)
+	client := &http.Client{Timeout: time.Second * 20, Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
 
 	// Send request
 	resp, err := client.Do(req)
