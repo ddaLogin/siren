@@ -1,57 +1,59 @@
 {{define "content"}}
-    <div class="col col-sm-6 offset-3">
-
+    <div class="col col-md-6 offset-3">
         {{if .Content.Message}}
             <div class="alert alert-danger" role="alert">{{ .Content.Message }}</div>
         {{end}}
 
-        <form role="form" action="/task?id={{ .Content.Task.Id }}" method="post">
-            <div class="form-group">
-                <label>Заголовок</label>
-                <input type="text" class="form-control" name="title" value="{{ .Content.Task.Title }}">
-            </div>
-            <div class="form-group">
-                <label>Тип таймера</label>
-                <select class="form-control" name="timer_type">
-                    <option value="1">Каждые N минут</option>
-{{/*                    <option value="2">В указанные N часов N минут, каждого дня</option>*/}}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Время</label>
-                <select class="form-control" name="timer_type">
-                    <option value="1">Каждые 5 минут</option>
-                    <option value="2">Каждые 15 минут</option>
-                    <option value="3">Каждые 30 минут</option>
-                    <option value="4">Каждые 60 минут</option>
-                </select>
-            </div>
+        <div class="card">
+            <div class="card-body">
+                <form role="form" action="/task?id={{ .Content.Task.Id }}" method="post">
+                    <div class="form-group">
+                        <label>Заголовок</label>
+                        <input type="text" class="form-control" placeholder="Поиск спамеров" name="title" value="{{ .Content.Task.Title }}">
+                    </div>
 
-            <div class="form-group">
-                <label>Шаблон поиска</label>
-                <input type="text" class="form-control" name="pattern" placeholder="source:mt* AND 'Ошибка АПИ'" value="{{ .Content.TaskGraylog.Pattern }}">
-            </div>
+                    <div class="form-group">
+                        <label>Запускать каждые:</label>
+                        <select class="form-control" name="interval">
+                            <option {{ if (eq .Content.Task.Interval 1) }} selected="selected" {{ end }} value="1">Каждые 5 минут</option>
+                            <option {{ if (eq .Content.Task.Interval 2) }} selected="selected" {{ end }} value="2">Каждые 15 минут</option>
+                            <option {{ if (eq .Content.Task.Interval 3) }} selected="selected" {{ end }} value="3">Каждые 30 минут</option>
+                            <option {{ if (eq .Content.Task.Interval 4) }} selected="selected" {{ end }} value="4">Каждые 60 минут</option>
+                        </select>
+                    </div>
 
-            <div class="form-group">
-                <label>За какое время аггрегировать поиск</label>
-                <input type="text" class="form-control" name="agg_time" placeholder="60m" value="{{ .Content.TaskGraylog.AggTime }}">
-            </div>
+                    <div class="form-group">
+                        <label>Запускать каждый день в:</label>
+                        <input type="text" class="form-control" name="time" placeholder="05:59" value="{{ .Content.Task.Time }}">
+                    </div>
 
-            <div class="form-group">
-                <label>Минимально допустимое кол-во сообщений</label>
-                <input type="number" class="form-control" name="min_count" value="{{ .Content.TaskGraylog.MinCount }}">
-            </div>
+                    <div class="form-group">
+                        <label>Шаблон поиска</label>
+                        <input type="text" class="form-control" name="pattern" placeholder="source:mt* AND 'Ошибка АПИ'" value="{{ .Content.TaskGraylog.Pattern }}">
+                    </div>
 
-            <div class="form-group">
-                <label>Максимально допустимое кол-во сообщений</label>
-                <input type="number" class="form-control" name="max_count" value="{{ .Content.TaskGraylog.MaxCount }}">
-            </div>
+                    <div class="form-group">
+                        <label>За какое время аггрегировать поиск</label>
+                        <input type="text" class="form-control" name="agg_time" placeholder="60m" value="{{ .Content.TaskGraylog.AggTime }}">
+                    </div>
 
-            <div class="form-group form-check">
-                <input type="checkbox" value="true" name="enable" class="form-check-input" id="exampleCheck1">
-                <label class="form-check-label" for="exampleCheck1">Включить</label>
+                    <div class="form-group">
+                        <label>Минимально допустимое кол-во сообщений</label>
+                        <input type="number" class="form-control" name="min_count" value="{{ .Content.TaskGraylog.MinCount }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Максимально допустимое кол-во сообщений</label>
+                        <input type="number" class="form-control" name="max_count" value="{{ .Content.TaskGraylog.MaxCount }}">
+                    </div>
+
+                    <div class="form-group form-check">
+                        <input type="checkbox" value="true" name="enable" id="exampleCheck1" class="form-check-input" {{ if .Content.Task.IsEnable }} checked="checked" {{ end }}>
+                        <label class="form-check-label" for="exampleCheck1">Включить</label>
+                        <button type="submit" class="btn btn-success float-right">Сохранить</button>
+                    </div>
+                </form>
             </div>
-            <button type="submit" class="btn btn-primary">Сохранить</button>
-        </form>
+        </div>
     </div>
 {{end}}

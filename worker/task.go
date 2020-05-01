@@ -7,9 +7,6 @@ import (
 	"log"
 )
 
-const TIMER_INTERVAL = 1 // Тип циклического таймера, каждые n минут
-const TIMER_TIME = 2     // Тип таймера по времени, 15:00
-
 const INTERVAL_5M = 1
 const INTERVAL_15M = 2
 const INTERVAL_30M = 3
@@ -22,8 +19,8 @@ type Task struct {
 	IsEnable   bool   // Включена ли задача
 	ObjectType int    // Тип задачи
 	ObjectId   int64  // Объект с параметрами задачи по типу
-	TimerType  int    // Тип таймера
-	TimerValue string // Значение таймера
+	Interval   int    // Интервал циклического выполнения
+	Time       string // Точное время для выполнения
 }
 
 // Интерфейс задачи
@@ -42,7 +39,7 @@ func (task Task) Do() {
 func GetAllTasksByTime(time string) (tasks []Task) {
 	db := database.Db()
 	defer db.Close()
-	rows, err := db.Query("SELECT * FROM tasks WHERE timer_type = ? AND timer_value = ? AND is_enable = true", TIMER_TIME, time)
+	rows, err := db.Query("SELECT * FROM tasks WHERE time = ? AND is_enable = true", time)
 	if err != nil {
 		log.Println("Не удалось найти задачи по времени. ", err)
 		return
@@ -99,7 +96,7 @@ func GetAllTasksByInterval(minutes int) (tasks []Task) {
 
 	db := database.Db()
 	defer db.Close()
-	rows, err := db.Query("SELECT * FROM tasks WHERE timer_type = ? AND timer_value <= ? AND is_enable = true", TIMER_INTERVAL, mInterval)
+	rows, err := db.Query("SELECT * FROM tasks WHERE `interval` <= ? AND is_enable = true", mInterval)
 	if err != nil {
 		log.Println("Не удалось найти задачи по интервалу. ", err)
 		return
@@ -157,26 +154,26 @@ func GetTaskById(id int) (task Task) {
 }
 
 // Сохранить Task
-func (t *Task) Save() bool {
+func (task *Task) Save() bool {
 	db := database.Db()
 	defer db.Close()
 
-	if t.Id == 0 {
-		result, err := db.Exec("INSERT INTO tasks (title, is_enable, object_type, object_id, timer_type, timer_value) VALUES (?, ?, ?, ?, ?, ?)",
-			t.Title, t.IsEnable, t.ObjectType, t.ObjectId, t.TimerType, t.TimerValue)
+	if task.Id == 0 {
+		result, err := db.Exec("INSERT INTO tasks (title, is_enable, object_type, object_id, `interval`, time) VALUES (?, ?, ?, ?, ?, ?)",
+			task.Title, task.IsEnable, task.ObjectType, task.ObjectId, task.Interval, task.Time)
 		if err != nil {
-			log.Println("Can't insert task. ", err, t)
+			log.Println("Can't insert task. ", err, task)
 			return false
 		}
 
-		t.Id, _ = result.LastInsertId()
+		task.Id, _ = result.LastInsertId()
 
 		return true
 	} else {
-		_, err := db.Exec("UPDATE tasks SET title = ?, is_enable = ?, object_type = ?, object_id = ?, timer_type = ?, timer_value = ? WHERE id = ?",
-			t.Title, t.IsEnable, t.ObjectType, t.ObjectId, t.TimerType, t.TimerValue, t.Id)
+		_, err := db.Exec("UPDATE tasks SET title = ?, is_enable = ?, object_type = ?, object_id = ?, `interval` = ?, time = ? WHERE id = ?",
+			task.Title, task.IsEnable, task.ObjectType, task.ObjectId, task.Interval, task.Time, task.Id)
 		if err != nil {
-			log.Println("Can't update task. ", err, t)
+			log.Println("Can't update task. ", err, task)
 			return false
 		}
 
@@ -196,8 +193,8 @@ func scanArray(rows *sql.Rows) (tasks []Task, err error) {
 			&task.IsEnable,
 			&task.ObjectType,
 			&task.ObjectId,
-			&task.TimerType,
-			&task.TimerValue,
+			&task.Interval,
+			&task.Time,
 		)
 		if err != nil {
 			return

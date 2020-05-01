@@ -43,8 +43,8 @@ func FormAction(w http.ResponseWriter, req *http.Request) {
 	if http.MethodPost == req.Method {
 		title := req.FormValue("title")
 		isEnable := req.FormValue("enable")
-		timerType, _ := strconv.Atoi(req.FormValue("timer_type"))
-		timerValue := req.FormValue("timer_value")
+		interval, _ := strconv.Atoi(req.FormValue("interval"))
+		time := req.FormValue("time")
 
 		pattern := req.FormValue("pattern")
 		aggTime := req.FormValue("agg_time")
@@ -53,8 +53,8 @@ func FormAction(w http.ResponseWriter, req *http.Request) {
 
 		task.Title = title
 		task.IsEnable = "true" == isEnable
-		task.TimerType = timerType
-		task.TimerValue = timerValue
+		task.Interval = interval
+		task.Time = time
 
 		graylogTask.Pattern = pattern
 		graylogTask.AggTime = aggTime
