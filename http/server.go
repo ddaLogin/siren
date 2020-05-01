@@ -22,4 +22,5 @@ func StartServer(config Config) {
 func initRoutes() {
 	http.HandleFunc("/", controllers.IndexAction)
 	http.HandleFunc("/task", controllers.FormAction)
+	http.HandleFunc("/task/run", controllers.RunAction)
 }

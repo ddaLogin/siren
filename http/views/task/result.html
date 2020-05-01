@@ -1,0 +1,45 @@
+{{define "content"}}
+    <div class="col col-md-6 offset-3">
+
+        <div class="card">
+            <div class="card-header text-white
+            {{ if (eq .Content.TaskResult.Status 0) }} bg-success {{ end }}
+            {{ if (eq .Content.TaskResult.Status 1) }} bg-warning {{ end }}
+            {{ if (eq .Content.TaskResult.Status 2) }} bg-danger {{ end }}
+            {{ if (eq .Content.TaskResult.Status 100) }} bg-secondary {{ end }}">
+                #{{ .Content.TaskResult.Task.Id }} - {{ .Content.TaskResult.Task.Title }}
+            </div>
+            <div class="card-body">
+                {{ if (eq .Content.TaskResult.Status 100) }}
+                    <h5 class="card-title">Техническая ошибка</h5>
+                    <p class="card-text">
+                        <pre>{{ .Content.TaskResult.Error }}</pre>
+                    </p>
+                {{ else }}
+                    {{ if (eq .Content.TaskResult.Status 0) }}
+                        <h5 class="card-title">Задача завершилась успешно</h5>
+                        <p class="card-text">
+                            <pre>{{ .Content.TaskResult.Info }}</pre>
+                        </p>
+                    {{ else }}
+                        <h5 class="card-title">{{ .Content.TaskResult.Message }}</h5>
+                        <p class="card-text">
+                            <pre>{{ .Content.TaskResult.Body }}</pre>
+                        </p>
+                        <br>
+                        <a data-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1">Показать дополнительную информацию</a>
+                        <div class="row">
+                            <div class="col">
+                                <div class="collapse multi-collapse" id="multiCollapseExample1">
+                                    <div class="card card-body">
+                                        <pre>{{ .Content.TaskResult.Info }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {{ end }}
+                {{ end }}
+            </div>
+        </div>
+    </div>
+{{end}}

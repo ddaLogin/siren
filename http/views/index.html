@@ -43,7 +43,18 @@
                             {{ end }}
                         </td>
                         <td>{{ $task.Time }}</td>
-                        <td><a href="/task?id={{ $task.Id }}">Редактировать</a></td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Действия
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="/task/run?id={{ $task.Id }}">Выполнить сейчас</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="/task?id={{ $task.Id }}">Редактировать</a>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 {{ end }}
                 </tbody>

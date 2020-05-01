@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+// Интерфейс сообщения
+type TelegramMessageInterface interface {
+	GetMessage() string // Получить сообщение для телеграмма
+}
+
 // Настройка бота
 type Config struct {
 	Token  string

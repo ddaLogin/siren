@@ -6,7 +6,6 @@ import (
 	"github.com/ddalogin/siren/database"
 	"github.com/ddalogin/siren/http"
 	"github.com/ddalogin/siren/worker"
-	"github.com/ddalogin/siren/worker/graylog"
 	"io"
 	"log"
 	"os"
@@ -26,7 +25,7 @@ func main() {
 	config := loadConfig()
 	database.InitDatabase(config.Db)
 	alert.InitTelegram(config.Telegram)
-	graylog.InitTaskGraylog(config.Eshost)
+	worker.InitTaskGraylog(config.Eshost)
 	go worker.StartWorker(config.Worker)
 	http.StartServer(config.Http)
 }

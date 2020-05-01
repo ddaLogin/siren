@@ -1,14 +1,14 @@
-package graylog
+package worker
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ddalogin/siren/alert"
 	"github.com/ddalogin/siren/database"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // Задача проверки сообщения в грейлоге
@@ -34,9 +34,8 @@ func InitTaskGraylog(h string) {
 }
 
 // Выполнение задачи
-func (t TaskGraylog) Do(title string) {
-	fmt.Println("Выполнение задачи: " + title)
-
+func (t TaskGraylog) Do() TaskResult {
+	result := TaskResult{}
 	var jsonStr = []byte(`{
 		"query": {
 			"bool": {
@@ -74,27 +73,42 @@ func (t TaskGraylog) Do(title string) {
 		panic(err.Error())
 	}
 
-	result := ElasticResponse{}
+	searchResult := ElasticResponse{}
 
-	err = json.Unmarshal(body, &result)
+	err = json.Unmarshal(body, &searchResult)
 	if err != nil {
 		log.Println("Не удалось распарсить ответ от ElasticSearch. ", err, string(body))
-		return
+		result.Status = STATUS_ERROR
+		result.Error = err
+		return result
 	}
 
-	message := "\xF0\x9F\x9A\xA8 *" + title + "*\r\n"
-
-	if t.MinCount != nil && result.Hits.Count <= *t.MinCount {
-		message = message + "\xE2\xAC\x87 *Кол-во сообщей уменьшилось*\r\n"
-		message = message + t.Pattern
-		alert.SendMessage(message)
+	if t.MinCount != nil && searchResult.Hits.Count <= *t.MinCount {
+		result.Status = STATUS_ALERT
+		result.Message = "Кол-во сообщей уменьшилось"
+		result.Body = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s",
+			t.Pattern,
+			strconv.Itoa(searchResult.Hits.Count),
+		)
 	}
 
-	if t.MaxCount != nil && result.Hits.Count >= *t.MaxCount {
-		message = message + "\xE2\xAC\x86 *Кол-во сообщей увеличилось*\r\n"
-		message = message + t.Pattern
-		alert.SendMessage(message)
+	if t.MaxCount != nil && searchResult.Hits.Count >= *t.MaxCount {
+		result.Status = STATUS_ALERT
+		result.Message = "Кол-во сообщей увеличилось"
+		result.Body = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s",
+			t.Pattern,
+			strconv.Itoa(searchResult.Hits.Count),
+		)
 	}
+
+	result.Info = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s\r\nМаксимальное кол-во сообщений: %s\r\nМинимальное кол-во сообщений: %s",
+		t.Pattern,
+		strconv.Itoa(searchResult.Hits.Count),
+		strconv.Itoa(*t.MaxCount),
+		strconv.Itoa(*t.MinCount),
+	)
+
+	return result
 }
 
 // Получить задачу по идентификатору

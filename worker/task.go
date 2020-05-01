@@ -2,8 +2,8 @@ package worker
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/ddalogin/siren/database"
-	"github.com/ddalogin/siren/worker/graylog"
 	"log"
 )
 
@@ -25,14 +25,20 @@ type Task struct {
 
 // Интерфейс задачи
 type TaskInterface interface {
-	Do(title string) // Выполнение задачу
+	Do() TaskResult // Выполнение задачу
 }
 
 // Выполнение задачу
-func (task Task) Do() {
-	graylogTask := graylog.GetTaskGraylogById(task.ObjectId)
+func (task Task) Do() TaskResult {
+	fmt.Println("Выполнение задачи: " + task.Title)
 
-	graylogTask.Do(task.Title)
+	graylogTask := GetTaskGraylogById(task.ObjectId)
+	result := graylogTask.Do()
+	result.Task = task
+
+	fmt.Println("Выполнение задачи: " + task.Title + " завершилось")
+
+	return result
 }
 
 // Получить все задачи по времени
