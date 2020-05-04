@@ -8,8 +8,15 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 )
+
+// Конфиг для грейлог задач
+type GraylogConfig struct {
+	Es      string // Хост грейлог эластика
+	BaseUrl string // Хост грейлога, для построения ссылки
+}
 
 // Задача проверки сообщения в грейлоге
 type TaskGraylog struct {
@@ -26,11 +33,11 @@ type ElasticResponse struct {
 	} `json:"hits"`
 }
 
-var host string
+var config GraylogConfig
 
 // Установить конфиг
-func InitTaskGraylog(h string) {
-	host = h
+func InitGraylogConfig(cfg GraylogConfig) {
+	config = cfg
 }
 
 // Выполнение задачи
@@ -59,7 +66,7 @@ func (t TaskGraylog) Do() TaskResult {
 			}
 		}
 	}`)
-	req, err := http.NewRequest("POST", host, bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", config.Es, bytes.NewBuffer(jsonStr))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -85,20 +92,14 @@ func (t TaskGraylog) Do() TaskResult {
 
 	if t.MinCount != nil && searchResult.Hits.Count < *t.MinCount {
 		result.Status = STATUS_ALERT
-		result.Message = "Кол-во сообщей уменьшилось"
-		result.Body = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s",
-			t.Pattern,
-			strconv.Itoa(searchResult.Hits.Count),
-		)
+		result.Message = "Кол-во сообщей уменьшилось до " + strconv.Itoa(searchResult.Hits.Count)
+		result.Body = "[Смотреть сообщения](" + buildGraylogUrl(t) + ")"
 	}
 
 	if t.MaxCount != nil && searchResult.Hits.Count > *t.MaxCount {
 		result.Status = STATUS_ALERT
-		result.Message = "Кол-во сообщей увеличилось"
-		result.Body = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s",
-			t.Pattern,
-			strconv.Itoa(searchResult.Hits.Count),
-		)
+		result.Message = "Кол-во сообщей увеличилось до " + strconv.Itoa(searchResult.Hits.Count)
+		result.Body = "[Смотреть сообщения](" + buildGraylogUrl(t) + ")"
 	}
 
 	result.Info = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s\r\nМаксимальное кол-во сообщений: %s\r\nМинимальное кол-во сообщений: %s",
@@ -109,6 +110,27 @@ func (t TaskGraylog) Do() TaskResult {
 	)
 
 	return result
+}
+
+// Строит ссылку на грейлог поиск
+func buildGraylogUrl(task TaskGraylog) string {
+	url, _ := url.Parse(config.BaseUrl)
+	timeMarker := task.AggTime[len(task.AggTime)-1:]
+	aggTime, _ := strconv.Atoi(task.AggTime[:len(task.AggTime)-1])
+
+	switch timeMarker {
+	case `m`:
+		aggTime = aggTime * 60
+	case `h`:
+		aggTime = aggTime * 60 * 60
+	}
+
+	query := url.Query()
+	query.Add("relative", strconv.Itoa(aggTime))
+	query.Add("q", task.Pattern)
+	url.RawQuery = query.Encode()
+
+	return url.String()
 }
 
 // Получить задачу по идентификатору

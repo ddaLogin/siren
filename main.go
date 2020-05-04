@@ -13,10 +13,9 @@ import (
 
 type Config struct {
 	Http     http.Config
-	Worker   worker.Config
 	Db       database.Config
 	Telegram alert.Config
-	Eshost   string
+	Graylog  worker.GraylogConfig
 }
 
 func main() {
@@ -25,8 +24,8 @@ func main() {
 	config := loadConfig()
 	database.InitDatabase(config.Db)
 	alert.InitTelegram(config.Telegram)
-	worker.InitTaskGraylog(config.Eshost)
-	go worker.StartWorker(config.Worker)
+	worker.InitGraylogConfig(config.Graylog)
+	go worker.StartWorker()
 	http.StartServer(config.Http)
 }
 

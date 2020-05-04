@@ -1,4 +1,6 @@
-eshost = ".../_search"
+[graylog]
+es = ".../_search"
+baseUrl = "http://graylog.com:1234/search"
 
 [http]
 port = ""
