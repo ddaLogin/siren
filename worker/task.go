@@ -102,7 +102,7 @@ func GetAllTasksByInterval(minutes int) (tasks []Task) {
 
 	db := database.Db()
 	defer db.Close()
-	rows, err := db.Query("SELECT * FROM tasks WHERE `interval` <= ? AND is_enable = true", mInterval)
+	rows, err := db.Query("SELECT * FROM tasks WHERE `interval` > 0 AND `interval` <= ? AND is_enable = true", mInterval)
 	if err != nil {
 		log.Println("Не удалось найти задачи по интервалу. ", err)
 		return

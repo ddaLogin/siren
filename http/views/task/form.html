@@ -15,6 +15,7 @@
                     <div class="form-group">
                         <label>Запускать каждые:</label>
                         <select class="form-control" name="interval">
+                            <option {{ if (eq .Content.Task.Interval 0) }} selected="selected" {{ end }} value="0">Выберите интервал</option>
                             <option {{ if (eq .Content.Task.Interval 1) }} selected="selected" {{ end }} value="1">Каждые 5 минут</option>
                             <option {{ if (eq .Content.Task.Interval 2) }} selected="selected" {{ end }} value="2">Каждые 15 минут</option>
                             <option {{ if (eq .Content.Task.Interval 3) }} selected="selected" {{ end }} value="3">Каждые 30 минут</option>
