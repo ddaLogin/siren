@@ -41,7 +41,7 @@ func SendMessage(message string) {
 	query := []byte(`{"chat_id": "` + config.ChatId + `", "text": "` + message + `", "parse_mode": "Markdown"}`)
 	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(query))
 	if err != nil {
-		log.Fatal("Error send telegram message. ", err)
+		log.Println("Error send telegram message. ", err)
 		return
 	}
 
@@ -54,7 +54,7 @@ func SendMessage(message string) {
 	// Send request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("Error response reading from telegram. ", err)
+		log.Println("Error response reading from telegram. ", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -65,7 +65,7 @@ func SendMessage(message string) {
 	response.Status = resp.StatusCode
 	response.Response, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("Error body reading from telegram. ", err)
+		log.Println("Error body reading from telegram. ", err)
 		return
 	}
 
