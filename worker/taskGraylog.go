@@ -83,7 +83,7 @@ func (t TaskGraylog) Do() TaskResult {
 		return result
 	}
 
-	if t.MinCount != nil && searchResult.Hits.Count <= *t.MinCount {
+	if t.MinCount != nil && searchResult.Hits.Count < *t.MinCount {
 		result.Status = STATUS_ALERT
 		result.Message = "Кол-во сообщей уменьшилось"
 		result.Body = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s",
@@ -92,7 +92,7 @@ func (t TaskGraylog) Do() TaskResult {
 		)
 	}
 
-	if t.MaxCount != nil && searchResult.Hits.Count >= *t.MaxCount {
+	if t.MaxCount != nil && searchResult.Hits.Count > *t.MaxCount {
 		result.Status = STATUS_ALERT
 		result.Message = "Кол-во сообщей увеличилось"
 		result.Body = fmt.Sprintf("Шаблон поиска: %s\r\nТекущее кол-во сообщений: %s",
