@@ -19,5 +19,9 @@ type TaskResult struct {
 
 // Получить сообщение для телеграмма
 func (t TaskResult) GetMessage() string {
-	return fmt.Sprintf("*%s*\r\n%s\r\n%s", t.Task.Title, t.Message, t.Body)
+	if t.Status == STATUS_ERROR {
+		return fmt.Sprintf("*%s*\r\n%s\r\n%s", t.Task.Title, "Технический сбой во время выполнения", t.Error)
+	} else {
+		return fmt.Sprintf("*%s*\r\n%s\r\n%s", t.Task.Title, t.Message, t.Body)
+	}
 }
