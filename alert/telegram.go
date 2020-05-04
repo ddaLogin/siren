@@ -48,8 +48,12 @@ func SendMessage(message string) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 
-	proxyUrl, err := url.Parse(config.Proxy)
-	client := &http.Client{Timeout: time.Second * 20, Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
+	client := &http.Client{Timeout: time.Second * 20}
+
+	if config.Proxy != "" {
+		proxyUrl, _ := url.Parse(config.Proxy)
+		client = &http.Client{Timeout: time.Second * 20, Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
+	}
 
 	// Send request
 	resp, err := client.Do(req)

@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/ddalogin/siren/database"
 	"log"
+	"time"
 )
+
+const TYPE_GRAYLOG = 1 // Тип задачи, поиск в грейлоге
 
 const INTERVAL_5M = 1
 const INTERVAL_15M = 2
@@ -35,6 +38,10 @@ func (task Task) Do() TaskResult {
 	graylogTask := GetTaskGraylogById(task.ObjectId)
 	result := graylogTask.Do()
 	result.Task = task
+	result.TaskId = task.Id
+	result.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
+
+	result.Save()
 
 	fmt.Println("Выполнение задачи: " + task.Title + " завершилось")
 

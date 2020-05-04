@@ -1,19 +1,26 @@
 package views
 
 import (
+	"github.com/ddalogin/siren/worker"
 	"html/template"
 	"net/http"
 )
 
 // Базовый темплейт
 type baseTemplate struct {
-	Content interface{}
+	Content     interface{}
+	NotifyStart string
+	NotifyEnd   string
 }
 
 // Выполнение указанного шаблона
 func Render(w http.ResponseWriter, templateFile string, data interface{}) {
+	start, end := worker.GetNotifyTime()
+
 	base := baseTemplate{
-		Content: data,
+		Content:     data,
+		NotifyStart: start,
+		NotifyEnd:   end,
 	}
 
 	view, _ := template.New("").ParseFiles(templateFile, "http/views/base.html")

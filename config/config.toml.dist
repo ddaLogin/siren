@@ -1,3 +1,7 @@
+[worker]
+notifyStart = "08:30"
+notifyEnd = "21:00"
+
 [graylog]
 es = ".../_search"
 baseUrl = "http://graylog.com:1234/search"

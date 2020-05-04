@@ -10,6 +10,7 @@
                     <th scope="col">Статус</th>
                     <th scope="col">Интервал</th>
                     <th scope="col">Запуск по времени</th>
+                    <th scope="col">Тип задачи</th>
                     <th scope="col">Действия</th>
                 </tr>
                 </thead>
@@ -44,12 +45,18 @@
                         </td>
                         <td>{{ $task.Time }}</td>
                         <td>
+                            {{ if (eq $task.ObjectType 1) }}
+                                Graylog
+                            {{ end }}
+                        </td>
+                        <td>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Действия
                                 </button>
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="/task/run?id={{ $task.Id }}">Выполнить сейчас</a>
+                                    <a class="dropdown-item" href="/task/result/list?id={{ $task.Id }}">История</a>
                                     <div class="dropdown-divider"></div>
                                     <a class="dropdown-item" href="/task?id={{ $task.Id }}">Редактировать</a>
                                 </div>

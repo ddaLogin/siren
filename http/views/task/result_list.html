@@ -1,0 +1,63 @@
+{{define "content"}}
+    <div class="card">
+        <div class="card-header">Последние 100 результатов задачи "{{ .Content.Task.Title }}"</div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Сообщение</th>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{ range $key, $result := .Content.TaskResults }}
+                    <tr>
+                        <th>{{ $result.Id }}</th>
+                        <td>
+                            {{ if (eq $result.Status 0) }}
+                                <span class="badge badge-success">Хорошо</span>
+                            {{ end }}
+
+                            {{ if (eq $result.Status 1) }}
+                                <span class="badge badge-warning">Внимание</span>
+                            {{ end }}
+
+                            {{ if (eq $result.Status 2) }}
+                                <span class="badge badge-danger">Плохо</span>
+                            {{ end }}
+
+                            {{ if (eq $result.Status 100) }}
+                                <span class="badge badge-secondary">Техническая ошибка</span>
+                            {{ end }}
+                        </td>
+                        <td>
+                            {{ if (eq $result.Status 0) }}
+                                {{ $result.Info }}
+                            {{ end }}
+
+                            {{ if (eq $result.Status 1) }}
+                                {{ $result.Message }}
+                            {{ end }}
+
+                            {{ if (eq $result.Status 2) }}
+                                {{ $result.Message }}
+                            {{ end }}
+
+                            {{ if (eq $result.Status 100) }}
+                                {{ $result.Error }}
+                            {{ end }}
+                        </td>
+                        <td>{{ $result.CreatedAt }}</td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="/task/result?id={{ $result.Id }}">Детали</a>
+                        </td>
+                    </tr>
+                {{ end }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{end}}

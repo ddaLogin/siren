@@ -11,6 +11,22 @@ create table tasks
 )
     charset = utf8;
 
+create table results
+(
+    id         int auto_increment
+        primary key,
+    status     int                                 not null,
+    task_id    int                                 null,
+    message    text                                null,
+    body       text                                null,
+    info       text                                null,
+    error      text                                null,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
+    constraint results_tasks_id_fk
+        foreign key (task_id) references tasks (id)
+)
+    charset = utf8;
+
 create table tasks_graylog
 (
     id        int auto_increment

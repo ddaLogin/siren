@@ -33,11 +33,11 @@ type ElasticResponse struct {
 	} `json:"hits"`
 }
 
-var config GraylogConfig
+var graylogConfig GraylogConfig
 
 // Установить конфиг
 func InitGraylogConfig(cfg GraylogConfig) {
-	config = cfg
+	graylogConfig = cfg
 }
 
 // Выполнение задачи
@@ -66,7 +66,7 @@ func (t TaskGraylog) Do() TaskResult {
 			}
 		}
 	}`)
-	req, err := http.NewRequest("POST", config.Es, bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", graylogConfig.Es, bytes.NewBuffer(jsonStr))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -86,7 +86,7 @@ func (t TaskGraylog) Do() TaskResult {
 	if err != nil {
 		log.Println("Не удалось распарсить ответ от ElasticSearch. ", err, string(body))
 		result.Status = STATUS_ERROR
-		result.Error = err
+		result.Error = err.Error()
 		return result
 	}
 
@@ -114,7 +114,7 @@ func (t TaskGraylog) Do() TaskResult {
 
 // Строит ссылку на грейлог поиск
 func buildGraylogUrl(task TaskGraylog) string {
-	url, _ := url.Parse(config.BaseUrl)
+	url, _ := url.Parse(graylogConfig.BaseUrl)
 	timeMarker := task.AggTime[len(task.AggTime)-1:]
 	aggTime, _ := strconv.Atoi(task.AggTime[:len(task.AggTime)-1])
 

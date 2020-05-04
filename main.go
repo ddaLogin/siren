@@ -16,6 +16,7 @@ type Config struct {
 	Db       database.Config
 	Telegram alert.Config
 	Graylog  worker.GraylogConfig
+	Worker   worker.Config
 }
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 	config := loadConfig()
 	database.InitDatabase(config.Db)
 	alert.InitTelegram(config.Telegram)
+	worker.InitWorker(config.Worker)
 	worker.InitGraylogConfig(config.Graylog)
 	go worker.StartWorker()
 	http.StartServer(config.Http)

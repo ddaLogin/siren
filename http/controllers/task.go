@@ -14,9 +14,15 @@ type FormPage struct {
 	Message     string
 }
 
-// Страница запуска задачи
-type RunPage struct {
+// Страница результата выполнения задачи
+type ResultPage struct {
 	TaskResult worker.TaskResult
+}
+
+// Страница всех результатов выполнения задачи
+type ResultListPage struct {
+	Task        worker.Task
+	TaskResults []worker.TaskResult
 }
 
 // Страница формы
@@ -93,7 +99,52 @@ func RunAction(w http.ResponseWriter, req *http.Request) {
 
 	result := task.Do()
 
-	views.Render(w, "http/views/task/result.html", RunPage{
+	http.Redirect(w, req, "/task/result?id="+strconv.Itoa(int(result.Id)), http.StatusSeeOther)
+}
+
+// Страница результата выполнения задачи
+func ResultAction(w http.ResponseWriter, req *http.Request) {
+	resultId := req.URL.Query().Get("id")
+
+	if resultId == "" || resultId == "0" {
+		http.NotFound(w, req)
+		return
+	}
+
+	intResultId, _ := strconv.Atoi(resultId)
+	result := worker.GetResultById(intResultId)
+
+	if (worker.TaskResult{}) == result {
+		http.NotFound(w, req)
+		return
+	}
+
+	views.Render(w, "http/views/task/result.html", ResultPage{
 		TaskResult: result,
+	})
+}
+
+// Страница всех результатов выполнения задачи
+func ResultListAction(w http.ResponseWriter, req *http.Request) {
+	taskId := req.URL.Query().Get("id")
+
+	if taskId == "" || taskId == "0" {
+		http.NotFound(w, req)
+		return
+	}
+
+	intTaskId, _ := strconv.Atoi(taskId)
+	task := worker.GetTaskById(intTaskId)
+
+	if (worker.Task{}) == task {
+		http.NotFound(w, req)
+		return
+	}
+
+	results := worker.GetResultByTaskId(intTaskId, 100)
+
+	views.Render(w, "http/views/task/result_list.html", ResultListPage{
+		Task:        task,
+		TaskResults: results,
 	})
 }
