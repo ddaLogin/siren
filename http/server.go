@@ -23,6 +23,7 @@ func initRoutes() {
 	http.HandleFunc("/", controllers.IndexAction)
 	http.HandleFunc("/task", controllers.FormAction)
 	http.HandleFunc("/task/run", controllers.RunAction)
+	http.HandleFunc("/task/delete", controllers.DeleteAction)
 	http.HandleFunc("/task/result", controllers.ResultAction)
 	http.HandleFunc("/task/result/list", controllers.ResultListAction)
 }

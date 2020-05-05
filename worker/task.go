@@ -196,6 +196,26 @@ func (task *Task) Save() bool {
 	return false
 }
 
+// Удалить Task
+func (task *Task) Delete() bool {
+	db := database.Db()
+	defer db.Close()
+
+	db.Exec("DELETE FROM results WHERE task_id = ?", task.ObjectId)
+
+	_, err := db.Exec("DELETE FROM tasks WHERE id = ?", task.Id)
+	if err != nil {
+		log.Println("Can't delete task. ", err, task)
+		return false
+	}
+
+	if task.ObjectType == TYPE_GRAYLOG {
+		db.Exec("DELETE FROM tasks_graylog WHERE id = ?", task.ObjectId)
+	}
+
+	return true
+}
+
 // Парсит маасив задач в модели
 func scanArray(rows *sql.Rows) (tasks []Task, err error) {
 	for rows.Next() {

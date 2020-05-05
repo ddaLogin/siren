@@ -148,3 +148,25 @@ func ResultListAction(w http.ResponseWriter, req *http.Request) {
 		TaskResults: results,
 	})
 }
+
+// Метод удаления задачи
+func DeleteAction(w http.ResponseWriter, req *http.Request) {
+	taskId := req.URL.Query().Get("id")
+
+	if taskId == "" || taskId == "0" || http.MethodPost != req.Method {
+		http.NotFound(w, req)
+		return
+	}
+
+	intTaskId, _ := strconv.Atoi(taskId)
+	task := worker.GetTaskById(intTaskId)
+
+	if (worker.Task{}) == task {
+		http.NotFound(w, req)
+		return
+	}
+
+	task.Delete()
+
+	http.Redirect(w, req, "/", http.StatusSeeOther)
+}

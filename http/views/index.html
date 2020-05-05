@@ -59,6 +59,9 @@
                                     <a class="dropdown-item" href="/task/result/list?id={{ $task.Id }}">История</a>
                                     <div class="dropdown-divider"></div>
                                     <a class="dropdown-item" href="/task?id={{ $task.Id }}">Редактировать</a>
+                                    <form class="form-delete" action="/task/delete?id={{ $task.Id }}" method="post">
+                                        <input type="submit" class="dropdown-item" value="Удалить" />
+                                    </form>
                                 </div>
                             </div>
                         </td>
@@ -68,4 +71,18 @@
             </table>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const deleteForms = document.getElementsByClassName('form-delete');
+
+            [].forEach.call(deleteForms, function (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!confirm('Вы хотите удалить задачу?')) {
+                        e.preventDefault();
+                    }
+                })
+            })
+        });
+    </script>
 {{end}}
