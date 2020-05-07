@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
 )
 
 // Конфиг подключения к БД
@@ -13,20 +14,13 @@ type Config struct {
 	Name string
 }
 
-var config Config
-
-// Инициализация базы данных
-func InitDatabase(cfg Config) {
-	config = cfg
-}
-
-// Получить подключение к бд
-func Db() (db *sql.DB) {
+// Конструктор коннектора к базе данных
+func NewConnector(config Config) *sql.DB {
 	db, err := sql.Open("mysql", fmt.Sprintf("%v:%v@/%v", config.User, config.Pass, config.Name))
-
 	if err != nil {
-		panic(err)
+		log.Println("Не удалось подключиться к базе данных", err)
+		return nil
 	}
 
-	return
+	return db
 }

@@ -1,78 +1,45 @@
 package worker
 
 import (
-	"github.com/ddalogin/siren/alert"
+	"github.com/ddalogin/siren/app/domain/model"
+	"github.com/ddalogin/siren/app/domain/repository"
+	"github.com/ddalogin/siren/app/domain/service"
 	"time"
 )
 
-// Настройки воркера
-type Config struct {
-	NotifyStart string // Время в формате "08:30", после которого уведомления можно расылать
-	NotifyEnd   string // Время в формате "21:00", после которого уведомления нельзя расылать
+// Фоновый воркер задач
+type Worker struct {
+	taskService    *service.TaskService
+	taskRepository *repository.TasksRepository
+	notifyService  *service.NotifyService
 }
 
-var config Config
-var silence = true
-
-// Настройка воркера
-func InitWorker(cfg Config) {
-	config = cfg
+// Конструктор воркера
+func NewWorker(taskService *service.TaskService, taskRepository *repository.TasksRepository, notifyService *service.NotifyService) *Worker {
+	return &Worker{taskService: taskService, taskRepository: taskRepository, notifyService: notifyService}
 }
 
-// Возвращает время разрешенное для уведомлений
-func GetNotifyTime() (start string, end string) {
-	start = config.NotifyStart
-	end = config.NotifyEnd
+// Запустить воркер
+func (w *Worker) Run() {
+	ticker := time.Tick(time.Second)
 
-	return
-}
-
-// Запустить воркера
-func StartWorker() {
-	ticker := time.Tick(time.Minute)
 	for now := range ticker {
-		checkSilence(now)
-		runTasksByTime(now)
-		runTasksByInterval(now)
+		tasks := w.taskRepository.GetForRun(now)
+
+		for _, task := range tasks {
+			go w.doTask(task)
+		}
 	}
 }
 
-// Запуск комманд по времени
-func runTasksByTime(now time.Time) {
-	tasks := GetAllTasksByTime(now.Format("15:04"))
+// Выполняет задачу и отправляет уведомление
+func (w *Worker) doTask(task *model.Task) {
+	result := w.taskService.RunTask(task)
 
-	for _, task := range tasks {
-		go runTask(task)
+	task.SetNextTime(task.CalculateNextTime())
+	w.taskRepository.Save(task)
+
+	if result.IsNeedNotify() {
+		w.notifyService.NotifyTelegram(result.BuildTelegramNotify())
 	}
-}
-
-// Зпуск команд по интервалу
-func runTasksByInterval(now time.Time) {
-	tasks := GetAllTasksByInterval(now.Minute())
-
-	for _, task := range tasks {
-		go runTask(task)
-	}
-}
-
-// Выполнение задачи
-func runTask(task Task) {
-	result := task.Do()
-	parseResult(result)
-}
-
-// Чтение результатов выполнения задачи
-func parseResult(result TaskResult) {
-	if result.Status != STATUS_SILENT && !silence {
-		alert.SendMessage(result.GetMessage())
-	}
-}
-
-// Проверка тихого режима
-func checkSilence(now time.Time) {
-	notifyStart, _ := time.Parse("15:04", config.NotifyStart)
-	notifyEnd, _ := time.Parse("15:04", config.NotifyEnd)
-	current, _ := time.Parse("15:04", now.Format("15:04"))
-
-	silence = !(current.After(notifyStart) && current.Before(notifyEnd))
 }
