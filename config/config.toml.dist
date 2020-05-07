@@ -1,21 +1,17 @@
-[worker]
-notifyStart = "08:30"
-notifyEnd = "21:00"
-
-[graylog]
-es = ".../_search"
-baseUrl = "http://graylog.com:1234/search"
-
 [http]
-port = ""
+port = "9999"
 
 [db]
 user=""
 pass=""
 name=""
 
-[telegram]
+[notify]
 host = "https://api.telegram.org"
 token = ""
 chatId = ""
-proxy = "socks5://xxxxx:xxxx"
+proxy = ""
+
+[graylog]
+es = "http://elasticsearch-host.example:9999/"
+baseUrl = "http://graylog-host.example:9999/"
