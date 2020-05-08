@@ -11,6 +11,7 @@ import (
 type NotifyConfig struct {
 	Start    string
 	End      string
+	Report   string
 	Telegram struct {
 		Token  string
 		Host   string

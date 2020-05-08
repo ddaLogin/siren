@@ -66,6 +66,18 @@ func (r *TasksRepository) GetAll() []*model.Task {
 	return model.ScanTasks(rows)
 }
 
+// Получить задачи для отчета
+func (r *TasksRepository) GetForReport() []*model.Task {
+	rows, err := r.db.Query("SELECT * FROM tasks WHERE enabled = 1 AND usernames IS NULL")
+	if err != nil {
+		log.Println("Не удалось найти задачи для отчета")
+		return nil
+	}
+	defer rows.Close()
+
+	return model.ScanTasks(rows)
+}
+
 // Удалить задачу по Id
 func (r *TasksRepository) DeleteById(id int) bool {
 	result, err := r.db.Exec("DELETE FROM tasks WHERE id = ?", id)

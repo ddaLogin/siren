@@ -21,6 +21,7 @@ type Container struct {
 	graylogService *service.GraylogService
 	taskService    *service.TaskService
 	notifyService  *service.NotifyService
+	reportService  *service.ReportService
 }
 
 // Конструктор контейнера
@@ -124,4 +125,18 @@ func (c *Container) NotifyService() *service.NotifyService {
 
 func (c *Container) SetNotifyService(notifyService *service.NotifyService) {
 	c.notifyService = notifyService
+}
+
+func (c *Container) ReportService() *service.ReportService {
+	if c.reportService == nil {
+		c.SetReportService(
+			service.NewReportService(c.taskRepository, c.taskGraylogRepository, c.resultsGraylogRepository),
+		)
+	}
+
+	return c.reportService
+}
+
+func (c *Container) SetReportService(reportService *service.ReportService) {
+	c.reportService = reportService
 }

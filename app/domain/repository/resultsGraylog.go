@@ -51,6 +51,20 @@ func (r *ResultsGraylogRepository) GetByTaskGraylogId(id int, limit int) []*mode
 	return results
 }
 
+// Получить результаты после определенной даты
+func (r *ResultsGraylogRepository) GetReportsForDate(id int, date string) []*model.ReportGraylog {
+	rows, err := r.db.Query("SELECT message, status, count(*) FROM results_graylog WHERE task_graylog_id = ? AND created_at > ? GROUP BY status, message", id, date)
+	if err != nil {
+		log.Println("Не удалось найти результаты позднее даты", date)
+		return nil
+	}
+	defer rows.Close()
+
+	results := model.ScanReportsGraylog(rows)
+
+	return results
+}
+
 // Сохранить результат
 func (r *ResultsGraylogRepository) Save(resultTask *model.ResultGraylog) bool {
 	if resultTask.Id() == 0 {

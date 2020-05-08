@@ -32,12 +32,13 @@ func main() {
 
 	cnt := container.NewContainer(config.Graylog, config.Notify, connector)
 
-	wrk := worker.NewWorker(cnt.TaskService(), cnt.TaskRepository(), cnt.NotifyService())
+	wrk := worker.NewWorker(config.Notify.Report, cnt.TaskService(), cnt.TaskRepository(), cnt.NotifyService(), cnt.ReportService())
 	go wrk.Run()
 
 	views.TelegramBot = config.Notify.Telegram.Bot
 	views.NotifyStart = config.Notify.Start
 	views.NotifyEnd = config.Notify.End
+	service.Host = config.Http.Host
 
 	server := http.NewServer(config.Http, cnt)
 	server.Run()
