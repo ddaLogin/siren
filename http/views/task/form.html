@@ -6,51 +6,46 @@
 
         <div class="card">
             <div class="card-body">
-                <form role="form" action="/task?id={{ .Content.Task.Id }}" method="post">
+                <form role="form" {{ if eq .Content.Task.Id 0 }} action="/task" {{ else }} action="/task?id={{ .Content.Task.Id }}" {{ end }} method="post">
                     <div class="form-group">
                         <label>Заголовок</label>
                         <input type="text" class="form-control" placeholder="Поиск спамеров" name="title" value="{{ .Content.Task.Title }}">
                     </div>
 
                     <div class="form-group">
-                        <label>Запускать каждые:</label>
-                        <select class="form-control" name="interval">
-                            <option {{ if (eq .Content.Task.Interval 0) }} selected="selected" {{ end }} value="0">Выберите интервал</option>
-                            <option {{ if (eq .Content.Task.Interval 1) }} selected="selected" {{ end }} value="1">Каждые 5 минут</option>
-                            <option {{ if (eq .Content.Task.Interval 2) }} selected="selected" {{ end }} value="2">Каждые 15 минут</option>
-                            <option {{ if (eq .Content.Task.Interval 3) }} selected="selected" {{ end }} value="3">Каждые 30 минут</option>
-                            <option {{ if (eq .Content.Task.Interval 4) }} selected="selected" {{ end }} value="4">Каждые 60 минут</option>
-                        </select>
+                        <label>Запускать каждые N минут:</label>
+                        <input type="number" class="form-control" placeholder="120" name="interval" value="{{ .Content.Task.Interval }}">
                     </div>
 
                     <div class="form-group">
-                        <label>Запускать каждый день в:</label>
-                        <input type="text" class="form-control" name="time" placeholder="05:59" value="{{ .Content.Task.Time }}">
+                        <label>Кого уведомлять</label>
+                        <input type="text" class="form-control" name="usernames" placeholder="username1,username2" {{ if .Content.Task.Usernames }} value="{{ .Content.Task.Usernames }}" {{ end }}>
+                        <small class="text-warning">Оставить пустым для уведомления всех через общий канал</small>
                     </div>
 
                     <div class="form-group">
                         <label>Шаблон поиска</label>
-                        <input type="text" class="form-control" name="pattern" placeholder="source:mt* AND 'Ошибка АПИ'" value="{{ .Content.TaskGraylog.Pattern }}">
+                        <input type="text" class="form-control" name="pattern" placeholder="source:market* AND 'Ошибка АПИ'" value="{{ .Content.TaskGraylog.Pattern }}">
                     </div>
 
                     <div class="form-group">
                         <label>За какое время аггрегировать поиск</label>
-                        <input type="text" class="form-control" name="agg_time" placeholder="60m" value="{{ .Content.TaskGraylog.AggTime }}">
+                        <input type="text" class="form-control" name="aggregate_time" placeholder="60m" value="{{ .Content.TaskGraylog.AggregateTime }}">
                     </div>
 
                     <div class="form-group">
                         <label>Минимально допустимое кол-во сообщений</label>
-                        <input type="number" class="form-control" name="min_count" value="{{ .Content.TaskGraylog.MinCount }}">
+                        <input type="number" class="form-control" name="min" value="{{ .Content.TaskGraylog.Min }}">
                     </div>
 
                     <div class="form-group">
                         <label>Максимально допустимое кол-во сообщений</label>
-                        <input type="number" class="form-control" name="max_count" value="{{ .Content.TaskGraylog.MaxCount }}">
+                        <input type="number" class="form-control" name="max" value="{{ .Content.TaskGraylog.Max }}">
                     </div>
 
                     <div class="form-group form-check">
-                        <input type="checkbox" value="true" name="enable" id="exampleCheck1" class="form-check-input" {{ if .Content.Task.IsEnable }} checked="checked" {{ end }}>
-                        <label class="form-check-label" for="exampleCheck1">Включить</label>
+                        <input type="checkbox" value="true" name="enabled" id="isEnabled" {{ if .Content.Task.IsEnabled }} checked="checked" {{ end }} class="form-check-input">
+                        <label class="form-check-label" for="isEnabled">Включить</label>
                         <button type="submit" class="btn btn-success float-right">Сохранить</button>
                     </div>
                 </form>

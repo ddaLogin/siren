@@ -31,3 +31,14 @@ func (s *TaskService) RunTask(task *model.Task) (result interfaces.TaskResult) {
 
 	return result
 }
+
+// Удалить задачу
+func (s *TaskService) DeleteTask(task *model.Task) bool {
+
+	if task.ObjectType() == model.TYPE_GRAYLOG {
+		resultGraylog := s.graylogService.RunTaskGraylog(task)
+		result = &resultGraylog
+	}
+
+	return result
+}

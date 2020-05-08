@@ -22,16 +22,16 @@ type Task struct {
 }
 
 // Создает модель задачи по строке из базы
-func ScanTask(row *sql.Row) (task *Task) {
+func ScanTask(row *sql.Row) (task Task) {
 	err := row.Scan(
-		task.id,
-		task.title,
-		task.objectType,
-		task.objectId,
-		task.interval,
-		task.nextTime,
-		task.isEnabled,
-		task.usernames,
+		&task.id,
+		&task.title,
+		&task.objectType,
+		&task.objectId,
+		&task.interval,
+		&task.nextTime,
+		&task.isEnabled,
+		&task.usernames,
 	)
 	if err != nil {
 		log.Println("Не удалось собрать модель задачи", row)
@@ -125,8 +125,8 @@ func (t *Task) Usernames() *string {
 	return t.usernames
 }
 
-func (t *Task) SetUsernames(usernames string) {
-	t.usernames = &usernames
+func (t *Task) SetUsernames(usernames *string) {
+	t.usernames = usernames
 }
 
 // Высчитывает время для следующего запуска

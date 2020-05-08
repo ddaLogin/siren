@@ -9,8 +9,9 @@
                     <th scope="col">Заголовок</th>
                     <th scope="col">Статус</th>
                     <th scope="col">Интервал</th>
-                    <th scope="col">Запуск по времени</th>
+                    <th scope="col">Следующий запуск</th>
                     <th scope="col">Тип задачи</th>
+                    <th scope="col">Кого уведомлять</th>
                     <th scope="col">Действия</th>
                 </tr>
                 </thead>
@@ -20,33 +21,20 @@
                         <th>{{ $task.Id }}</th>
                         <td>{{ $task.Title }}</td>
                         <td>
-                            {{ if $task.IsEnable }}
+                            {{ if $task.IsEnabled }}
                                 <span class="badge badge-success">Включена</span>
                             {{ else }}
                                 <span class="badge badge-secondary">Отключена</span>
                             {{ end }}
                         </td>
+                        <td>Каждые {{ $task.Interval }} минут</td>
+                        <td>{{ $task.NextTime }}</td>
+                        <td>{{ $task.ObjectType }}</td>
                         <td>
-                            {{ if (eq $task.Interval 1) }}
-                                Каждые 5 минут
-                            {{ end }}
-
-                            {{ if (eq $task.Interval 2) }}
-                                Каждые 15 минут
-                            {{ end }}
-
-                            {{ if (eq $task.Interval 3) }}
-                                Каждые 30 минут
-                            {{ end }}
-
-                            {{ if (eq $task.Interval 4) }}
-                                Каждые 60 минут
-                            {{ end }}
-                        </td>
-                        <td>{{ $task.Time }}</td>
-                        <td>
-                            {{ if (eq $task.ObjectType 1) }}
-                                Graylog
+                            {{ if $task.Usernames }}
+                                {{ $task.Usernames }}
+                            {{ else }}
+                                Общий канал
                             {{ end }}
                         </td>
                         <td>

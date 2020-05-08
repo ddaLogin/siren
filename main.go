@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/ddalogin/siren/app/domain/repository"
 	"github.com/ddalogin/siren/app/domain/service"
+	"github.com/ddalogin/siren/container"
 	"github.com/ddalogin/siren/database"
 	"github.com/ddalogin/siren/http"
 	"github.com/ddalogin/siren/worker"
@@ -26,21 +26,16 @@ func init() {
 // Начало работы
 func main() {
 	config := loadConfig()
-
 	connector := database.NewConnector(config.Db)
 	defer connector.Close()
 
-	taskRepository := repository.GetTasksRepository(connector)
-	taskGraylogRepository := repository.GetTasksGraylogRepository(connector)
-	resultsGraylogRepository := repository.GetResultsGraylogRepository(connector)
-	telegramChatRepository := repository.GetTelegramChatRepository(connector)
+	cnt := container.NewContainer(config.Graylog, config.Notify, connector)
 
-	graylogService := service.NewGraylogService(config.Graylog, taskGraylogRepository, resultsGraylogRepository)
-	taskService := service.NewTaskService(taskRepository, graylogService)
-	notifyService := service.NewNotifyService(config.Notify, telegramChatRepository)
+	wrk := worker.NewWorker(cnt.TaskService(), cnt.TaskRepository(), cnt.NotifyService())
+	go wrk.Run()
 
-	wrk := worker.NewWorker(taskService, taskRepository, notifyService)
-	wrk.Run()
+	server := http.NewServer(config.Http, cnt)
+	server.Run()
 }
 
 // Инициализация логов

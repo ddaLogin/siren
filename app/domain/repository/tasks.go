@@ -33,7 +33,9 @@ func (r *TasksRepository) GetById(id int) *model.Task {
 		return nil
 	}
 
-	return model.ScanTask(row)
+	task := model.ScanTask(row)
+
+	return &task
 }
 
 // Получить задачи подходящих по времени к запуску
@@ -48,12 +50,24 @@ func (r *TasksRepository) GetForRun(time time.Time) []*model.Task {
 	return model.ScanTasks(rows)
 }
 
+// Получить все задачи
+func (r *TasksRepository) GetAll() []*model.Task {
+	rows, err := r.db.Query("SELECT * FROM tasks")
+	if err != nil {
+		log.Println("Не удалось найти все задачи")
+		return nil
+	}
+	defer rows.Close()
+
+	return model.ScanTasks(rows)
+}
+
 // Сохранить задачу
 func (r *TasksRepository) Save(task *model.Task) bool {
 	if task.Id() == 0 {
 		result, err := r.db.Exec(
-			"INSERT INTO tasks (title, object_type, object_id, `interval`, next_time, enabled, usernames) VALUE (?, ?, ?, ?, ?, ?, ?)",
-			task.Title(), task.ObjectType(), task.ObjectId(), task.Interval(), task.NextTime(), task.IsEnabled(), task.Usernames(),
+			"INSERT INTO tasks (title, object_type, object_id, `interval`, enabled, usernames) VALUE (?, ?, ?, ?, ?, ?)",
+			task.Title(), task.ObjectType(), task.ObjectId(), task.Interval(), task.IsEnabled(), task.Usernames(),
 		)
 		if err != nil {
 			log.Println("Не удалось сохранить задачу.", err, task)

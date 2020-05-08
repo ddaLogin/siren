@@ -21,7 +21,7 @@ func NewWorker(taskService *service.TaskService, taskRepository *repository.Task
 
 // Запустить воркер
 func (w *Worker) Run() {
-	ticker := time.Tick(time.Second)
+	ticker := time.Tick(time.Minute)
 
 	for now := range ticker {
 		tasks := w.taskRepository.GetForRun(now)

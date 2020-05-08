@@ -1,80 +1,123 @@
 package controllers
 
 import (
+	"github.com/ddalogin/siren/app/domain/model"
+	"github.com/ddalogin/siren/container"
+	"github.com/ddalogin/siren/http/views"
 	"net/http"
+	"strconv"
 )
 
-//// Страница формы
-//type FormPage struct {
-//	Task        worker.Task
-//	TaskGraylog worker.TaskGraylog
-//	Message     string
-//}
-//
+type TaskController struct {
+	Container *container.Container
+}
+
+// Страница формы
+type FormPage struct {
+	Task        *model.Task
+	TaskGraylog *model.TaskGraylog
+	Message     string
+}
+
 //// Страница результата выполнения задачи
 //type ResultPage struct {
-//	TaskResult worker.TaskResult
+//	TaskResult *model.ResultGraylog
 //}
 //
 //// Страница всех результатов выполнения задачи
 //type ResultListPage struct {
-//	Task        worker.Task
-//	TaskResults []worker.TaskResult
+//	Task        *model.Task
+//	TaskResults []*model.ResultGraylog
 //}
 
 // Страница формы
-func FormAction(w http.ResponseWriter, req *http.Request) {
-	//message := ""
+func (c *TaskController) FormAction(w http.ResponseWriter, req *http.Request) {
+	message := ""
+	taskId := req.URL.Query().Get("id")
+	task := &model.Task{}
+	taskGraylog := &model.TaskGraylog{}
+
+	if taskId != "" {
+		intTaskId, _ := strconv.Atoi(taskId)
+		task = c.Container.TaskRepository().GetById(intTaskId)
+
+		if task == nil || *task == (model.Task{}) {
+			http.NotFound(w, req)
+			return
+		}
+
+		taskGraylog = c.Container.TaskGraylogRepository().GetById(task.Id())
+
+		if taskGraylog == nil || *taskGraylog == (model.TaskGraylog{}) {
+			http.NotFound(w, req)
+			return
+		}
+	}
+
+	if http.MethodPost == req.Method {
+		task.SetTitle(req.FormValue("title"))
+		task.SetIsEnabled("true" == req.FormValue("enabled"))
+
+		interval, _ := strconv.Atoi(req.FormValue("interval"))
+		task.SetInterval(interval)
+
+		usernames := req.FormValue("usernames")
+
+		if usernames == "" {
+			task.SetUsernames(nil)
+		} else {
+			task.SetUsernames(&usernames)
+		}
+
+		taskGraylog.SetPattern(req.FormValue("pattern"))
+		taskGraylog.SetAggregateTime(req.FormValue("aggregate_time"))
+		min, _ := strconv.Atoi(req.FormValue("min"))
+		taskGraylog.SetMin(min)
+		max, _ := strconv.Atoi(req.FormValue("max"))
+		taskGraylog.SetMax(max)
+
+		if c.Container.TaskGraylogRepository().Save(taskGraylog) {
+			task.SetObjectType(model.TYPE_GRAYLOG)
+			task.SetObjectId(taskGraylog.Id())
+
+			if c.Container.TaskRepository().Save(task) {
+				http.Redirect(w, req, "/", http.StatusSeeOther)
+			} else {
+				message = "Не удалось сохранить задачу"
+			}
+		} else {
+			message = "Не удалось сохранить задачу"
+		}
+	}
+
+	views.Render(w, "http/views/task/form.html", FormPage{
+		Task:        task,
+		TaskGraylog: taskGraylog,
+		Message:     message,
+	})
+}
+
+// Метод удаления задачи
+func (c *TaskController) DeleteAction(w http.ResponseWriter, req *http.Request) {
 	//taskId := req.URL.Query().Get("id")
-	//task := worker.Task{}
-	//graylogTask := worker.TaskGraylog{}
 	//
-	//if taskId != "" && taskId != "0" {
-	//	intTaskId, _ := strconv.Atoi(taskId)
-	//	task = worker.GetTaskById(intTaskId)
-	//	graylogTask = worker.GetTaskGraylogById(task.ObjectId)
+	//if taskId == "" || taskId == "0" || http.MethodPost != req.Method {
+	//	http.NotFound(w, req)
+	//	return
 	//}
 	//
-	//if http.MethodPost == req.Method {
-	//	title := req.FormValue("title")
-	//	isEnable := req.FormValue("enable")
-	//	interval, _ := strconv.Atoi(req.FormValue("interval"))
-	//	time := req.FormValue("time")
+	//taskRepository := repository.GetTasksRepository(c.Connector)
+	//intTaskId, _ := strconv.Atoi(taskId)
 	//
-	//	pattern := req.FormValue("pattern")
-	//	aggTime := req.FormValue("agg_time")
-	//	minCount, _ := strconv.Atoi(req.FormValue("min_count"))
-	//	maxCount, _ := strconv.Atoi(req.FormValue("max_count"))
 	//
-	//	task.Title = title
-	//	task.IsEnable = "true" == isEnable
-	//	task.Interval = interval
-	//	task.Time = time
-	//
-	//	graylogTask.Pattern = pattern
-	//	graylogTask.AggTime = aggTime
-	//	graylogTask.MinCount = &minCount
-	//	graylogTask.MaxCount = &maxCount
-	//
-	//	if graylogTask.Save() {
-	//		task.ObjectType = 1
-	//		task.ObjectId = graylogTask.Id
-	//
-	//		if task.Save() {
-	//			http.Redirect(w, req, "/", http.StatusSeeOther)
-	//		} else {
-	//			message = "Не удалось сохранить задачу"
-	//		}
-	//	} else {
-	//		message = "Не удалось сохранить задачу"
-	//	}
+	//if (worker.Task{}) == task {
+	//	http.NotFound(w, req)
+	//	return
 	//}
 	//
-	//views.Render(w, "http/views/task/form.html", FormPage{
-	//	Task:        task,
-	//	TaskGraylog: graylogTask,
-	//	Message:     message,
-	//})
+	//task.Delete()
+	//
+	//http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 // Страница выполнения задачи
@@ -144,26 +187,4 @@ func ResultListAction(w http.ResponseWriter, req *http.Request) {
 	//	Task:        task,
 	//	TaskResults: results,
 	//})
-}
-
-// Метод удаления задачи
-func DeleteAction(w http.ResponseWriter, req *http.Request) {
-	//taskId := req.URL.Query().Get("id")
-	//
-	//if taskId == "" || taskId == "0" || http.MethodPost != req.Method {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//intTaskId, _ := strconv.Atoi(taskId)
-	//task := worker.GetTaskById(intTaskId)
-	//
-	//if (worker.Task{}) == task {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//task.Delete()
-	//
-	//http.Redirect(w, req, "/", http.StatusSeeOther)
 }
