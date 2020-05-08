@@ -24,6 +24,33 @@ func GetResultsGraylogRepository(db *sql.DB) *ResultsGraylogRepository {
 	return resultsGraylogRepository
 }
 
+// Получить результат по ID
+func (r *ResultsGraylogRepository) GetById(id int) *model.ResultGraylog {
+	row := r.db.QueryRow("SELECT * FROM results_graylog WHERE id = ?", id)
+	if row == nil {
+		log.Println("Не удалось найти результат задачи для грейлога по ID", id)
+		return nil
+	}
+
+	result := model.ScanResultGraylog(row)
+
+	return &result
+}
+
+// Получить результаты по ID грейлог задачи
+func (r *ResultsGraylogRepository) GetByTaskGraylogId(id int, limit int) []*model.ResultGraylog {
+	rows, err := r.db.Query("SELECT * FROM results_graylog WHERE task_graylog_id = ? ORDER BY created_at DESC LIMIT ?", id, limit)
+	if err != nil {
+		log.Println("Не удалось найти результаты задачи для грейлога по ID", id)
+		return nil
+	}
+	defer rows.Close()
+
+	results := model.ScanResultsGraylog(rows)
+
+	return results
+}
+
 // Сохранить результат
 func (r *ResultsGraylogRepository) Save(resultTask *model.ResultGraylog) bool {
 	if resultTask.Id() == 0 {

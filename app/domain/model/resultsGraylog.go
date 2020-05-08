@@ -1,7 +1,9 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -21,6 +23,52 @@ type ResultGraylog struct {
 	graylogLink   string // Ссылка на грейлог
 	createdAt     string // Дата результатов
 	task          *Task  // Задача
+}
+
+// Создает модель результата задачи для грейлога по строке из базы
+func ScanResultGraylog(row *sql.Row) (result ResultGraylog) {
+	err := row.Scan(
+		&result.id,
+		&result.taskGraylogId,
+		&result.status,
+		&result.title,
+		&result.message,
+		&result.text,
+		&result.count,
+		&result.graylogLink,
+		&result.createdAt,
+	)
+	if err != nil {
+		log.Println("Не удалось собрать модель результата задачи для грейлога", row)
+	}
+
+	return
+}
+
+// Создает массив моделей результата задачи для грейлога по строкам из базы
+func ScanResultsGraylog(rows *sql.Rows) (results []*ResultGraylog) {
+	for rows.Next() {
+		result := ResultGraylog{}
+		err := rows.Scan(
+			&result.id,
+			&result.taskGraylogId,
+			&result.status,
+			&result.title,
+			&result.message,
+			&result.text,
+			&result.count,
+			&result.graylogLink,
+			&result.createdAt,
+		)
+		if err != nil {
+			log.Println("Не удалось собрать модель результата задачи для грейлога из массива строк", err)
+			return
+		}
+
+		results = append(results, &result)
+	}
+
+	return
 }
 
 func (r *ResultGraylog) Id() int {

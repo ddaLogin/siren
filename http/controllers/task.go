@@ -19,17 +19,6 @@ type FormPage struct {
 	Message     string
 }
 
-//// Страница результата выполнения задачи
-//type ResultPage struct {
-//	TaskResult *model.ResultGraylog
-//}
-//
-//// Страница всех результатов выполнения задачи
-//type ResultListPage struct {
-//	Task        *model.Task
-//	TaskResults []*model.ResultGraylog
-//}
-
 // Страница формы
 func (c *TaskController) FormAction(w http.ResponseWriter, req *http.Request) {
 	message := ""
@@ -120,70 +109,60 @@ func (c *TaskController) DeleteAction(w http.ResponseWriter, req *http.Request) 
 }
 
 // Страница выполнения задачи
-func RunAction(w http.ResponseWriter, req *http.Request) {
-	//taskId := req.URL.Query().Get("id")
-	//
-	//if taskId == "" || taskId == "0" {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//intTaskId, _ := strconv.Atoi(taskId)
-	//task := worker.GetTaskById(intTaskId)
-	//
-	//if (worker.Task{}) == task {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//result := task.Do()
-	//
-	//http.Redirect(w, req, "/task/result?id="+strconv.Itoa(int(result.Id)), http.StatusSeeOther)
-}
+func (c *TaskController) RunAction(w http.ResponseWriter, req *http.Request) {
+	taskId := req.URL.Query().Get("id")
 
-// Страница результата выполнения задачи
-func ResultAction(w http.ResponseWriter, req *http.Request) {
-	//resultId := req.URL.Query().Get("id")
-	//
-	//if resultId == "" || resultId == "0" {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//intResultId, _ := strconv.Atoi(resultId)
-	//result := worker.GetResultById(intResultId)
-	//
-	//if (worker.TaskResult{}) == result {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//views.Render(w, "http/views/task/result.html", ResultPage{
-	//	TaskResult: result,
-	//})
+	if taskId == "" || taskId == "0" {
+		http.NotFound(w, req)
+		return
+	}
+
+	intTaskId, _ := strconv.Atoi(taskId)
+	task := c.Container.TaskRepository().GetById(intTaskId)
+
+	if (&model.Task{}) == task {
+		http.NotFound(w, req)
+		return
+	}
+
+	if task.ObjectType() == model.TYPE_GRAYLOG {
+		result := c.Container.GraylogService().RunTaskGraylog(task)
+
+		if result == (model.ResultGraylog{}) {
+			http.NotFound(w, req)
+			return
+		}
+
+		http.Redirect(w, req, "/task/graylog/result?id="+strconv.Itoa(result.Id()), http.StatusSeeOther)
+		return
+	}
+
+	http.NotFound(w, req)
+	return
 }
 
 // Страница всех результатов выполнения задачи
-func ResultListAction(w http.ResponseWriter, req *http.Request) {
-	//taskId := req.URL.Query().Get("id")
-	//
-	//if taskId == "" || taskId == "0" {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//intTaskId, _ := strconv.Atoi(taskId)
-	//task := worker.GetTaskById(intTaskId)
-	//
-	//if (worker.Task{}) == task {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//results := worker.GetResultByTaskId(intTaskId, 100)
-	//
-	//views.Render(w, "http/views/task/result_list.html", ResultListPage{
-	//	Task:        task,
-	//	TaskResults: results,
-	//})
+func (c *TaskController) ResultListAction(w http.ResponseWriter, req *http.Request) {
+	taskId := req.URL.Query().Get("id")
+
+	if taskId == "" || taskId == "0" {
+		http.NotFound(w, req)
+		return
+	}
+
+	intTaskId, _ := strconv.Atoi(taskId)
+	task := c.Container.TaskRepository().GetById(intTaskId)
+
+	if (&model.Task{}) == task {
+		http.NotFound(w, req)
+		return
+	}
+
+	if task.ObjectType() == model.TYPE_GRAYLOG {
+		http.Redirect(w, req, "/task/graylog/result/list?id="+strconv.Itoa(task.ObjectId()), http.StatusSeeOther)
+		return
+	}
+
+	http.NotFound(w, req)
+	return
 }

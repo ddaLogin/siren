@@ -1,0 +1,45 @@
+{{define "content"}}
+    <div class="card">
+        <div class="card-header">Последние 100 результатов задачи</div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col">Заголовок</th>
+                    <th scope="col">Кол-во сообщений</th>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{ range $key, $result := .Content.Results }}
+                    <tr>
+                        <th>{{ $result.Id }}</th>
+                        <td>
+                            {{ if (eq $result.Status 0) }}
+                                <span class="badge badge-success">{{ $result.Message }}</span>
+                            {{ end }}
+
+                            {{ if (eq $result.Status 1) }}
+                                <span class="badge badge-danger">{{ $result.Message }}</span>
+                            {{ end }}
+
+                            {{ if (eq $result.Status 100) }}
+                                <span class="badge badge-dark">{{ $result.Message }}</span>
+                            {{ end }}
+                        </td>
+                        <td>{{ $result.Title }}</td>
+                        <td>{{ $result.Count }}</td>
+                        <td>{{ $result.CreatedAt }}</td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="/task/graylog/result?id={{ $result.Id }}">Детали</a>
+                        </td>
+                    </tr>
+                {{ end }}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{end}}

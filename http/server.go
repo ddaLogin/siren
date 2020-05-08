@@ -45,8 +45,11 @@ func (s *Server) initRoutes() {
 
 	taskController := controllers.TaskController{Container: s.container}
 	http.HandleFunc("/task", taskController.FormAction)
+	http.HandleFunc("/task/run", taskController.RunAction)
 	http.HandleFunc("/task/delete", taskController.DeleteAction)
-	//http.HandleFunc("/task/run", controllers.RunAction)
-	//http.HandleFunc("/task/result", controllers.ResultAction)
-	//http.HandleFunc("/task/result/list", controllers.ResultListAction)
+	http.HandleFunc("/task/result/list", taskController.ResultListAction)
+
+	taskGraylogController := controllers.TaskGraylogController{Container: s.container}
+	http.HandleFunc("/task/graylog/result", taskGraylogController.ResultAction)
+	http.HandleFunc("/task/graylog/result/list", taskGraylogController.ResultListAction)
 }
