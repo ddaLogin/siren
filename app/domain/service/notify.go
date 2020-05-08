@@ -4,14 +4,20 @@ import (
 	"github.com/ddalogin/siren/app/domain/model"
 	"github.com/ddalogin/siren/app/domain/repository"
 	"github.com/ddalogin/siren/telegram"
+	"time"
 )
 
 // Настройка уведомлений
 type NotifyConfig struct {
-	Token  string
-	Host   string
-	ChatId string
-	Proxy  string
+	Start    string
+	End      string
+	Telegram struct {
+		Token  string
+		Host   string
+		ChatId string
+		Proxy  string
+		Bot    string
+	}
 }
 
 // Сервис уведомления
@@ -27,11 +33,16 @@ func NewNotifyService(config NotifyConfig, telegramChatRepository *repository.Te
 
 // Отправить уведомление в телеграм
 func (s *NotifyService) NotifyTelegram(n *model.TelegramNotify) {
+
+	if s.IsSilentTime() {
+		return
+	}
+
 	var chatIds []string
-	client := telegram.NewClient(s.config.Host, s.config.Token, s.config.Proxy)
+	client := telegram.NewClient(s.config.Telegram.Host, s.config.Telegram.Token, s.config.Telegram.Proxy)
 
 	if len(n.UserNames()) == 0 {
-		chatIds = append(chatIds, s.config.ChatId)
+		chatIds = append(chatIds, s.config.Telegram.ChatId)
 	} else {
 		for _, username := range n.UserNames() {
 			chat := s.telegramChatRepository.GetByUserName(username)
@@ -53,7 +64,7 @@ func (s *NotifyService) NotifyTelegram(n *model.TelegramNotify) {
 
 // Забирает поледние обновления от бота, и регистрирует чаты в базе данных
 func (s *NotifyService) UpdateTelegramChats(searchedUsername string) (searchedChat *model.TelegramChat) {
-	client := telegram.NewClient(s.config.Host, s.config.Token, s.config.Proxy)
+	client := telegram.NewClient(s.config.Telegram.Host, s.config.Telegram.Token, s.config.Telegram.Proxy)
 	updates := client.UpdateChats()
 
 	for _, update := range updates.Result {
@@ -71,4 +82,13 @@ func (s *NotifyService) UpdateTelegramChats(searchedUsername string) (searchedCh
 	}
 
 	return
+}
+
+// Разрешено ли в текущее время рассылать уведомления
+func (s *NotifyService) IsSilentTime() bool {
+	notifyStart, _ := time.Parse("15:04", s.config.Start)
+	notifyEnd, _ := time.Parse("15:04", s.config.End)
+	current, _ := time.Parse("15:04", time.Now().Format("15:04"))
+
+	return !(current.After(notifyStart) && current.Before(notifyEnd))
 }

@@ -8,18 +8,23 @@ import (
 // Базовый темплейт
 type baseTemplate struct {
 	Content     interface{}
+	TelegramBot string
 	NotifyStart string
 	NotifyEnd   string
 }
 
+var TelegramBot string
+var NotifyStart string
+var NotifyEnd string
+
 // Выполнение указанного шаблона
 func Render(w http.ResponseWriter, templateFile string, data interface{}) {
-	//start, end := worker.GetNotifyTime()
 
 	base := baseTemplate{
 		Content:     data,
-		NotifyStart: "start",
-		NotifyEnd:   "end",
+		TelegramBot: TelegramBot,
+		NotifyStart: NotifyStart,
+		NotifyEnd:   NotifyEnd,
 	}
 
 	view, _ := template.New("").ParseFiles(templateFile, "http/views/base.html")

@@ -6,6 +6,7 @@ import (
 	"github.com/ddalogin/siren/container"
 	"github.com/ddalogin/siren/database"
 	"github.com/ddalogin/siren/http"
+	"github.com/ddalogin/siren/http/views"
 	"github.com/ddalogin/siren/worker"
 	"log"
 	"os"
@@ -33,6 +34,10 @@ func main() {
 
 	wrk := worker.NewWorker(cnt.TaskService(), cnt.TaskRepository(), cnt.NotifyService())
 	go wrk.Run()
+
+	views.TelegramBot = config.Notify.Telegram.Bot
+	views.NotifyStart = config.Notify.Start
+	views.NotifyEnd = config.Notify.End
 
 	server := http.NewServer(config.Http, cnt)
 	server.Run()

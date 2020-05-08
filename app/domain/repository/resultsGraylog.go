@@ -70,6 +70,8 @@ func (r *ResultsGraylogRepository) Save(resultTask *model.ResultGraylog) bool {
 		}
 
 		resultTask.SetId(int(id))
+
+		r.DeleteOldestByTaskId(resultTask.Id())
 	} else {
 		_, err := r.db.Exec(
 			"UPDATE results_graylog SET task_graylog_id = ?, title = ?, status = ?, message = ?, text = ?, count = ?, graylog_link = ? WHERE id = ?",
@@ -89,6 +91,19 @@ func (r *ResultsGraylogRepository) DeleteByTaskId(id int) bool {
 	result, err := r.db.Exec("DELETE FROM results_graylog WHERE task_graylog_id = ?", id)
 	if err != nil {
 		log.Println("Не удалось удалить результаты задачи по её ID")
+		return false
+	}
+
+	count, _ := result.RowsAffected()
+
+	return count > 0
+}
+
+// Удалить слишком старые результаты задачи
+func (r *ResultsGraylogRepository) DeleteOldestByTaskId(id int) bool {
+	result, err := r.db.Exec("DELETE FROM results_graylog WHERE task_graylog_id = ? AND created_at < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 14 DAY))", id)
+	if err != nil {
+		log.Println("Не удалось удалить старые результаты задачи по её ID")
 		return false
 	}
 
