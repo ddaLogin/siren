@@ -46,7 +46,7 @@ func (c *TaskController) FormAction(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		taskGraylog = c.Container.TaskGraylogRepository().GetById(task.Id())
+		taskGraylog = c.Container.TaskGraylogRepository().GetById(task.ObjectId())
 
 		if taskGraylog == nil || *taskGraylog == (model.TaskGraylog{}) {
 			http.NotFound(w, req)
@@ -99,25 +99,24 @@ func (c *TaskController) FormAction(w http.ResponseWriter, req *http.Request) {
 
 // Метод удаления задачи
 func (c *TaskController) DeleteAction(w http.ResponseWriter, req *http.Request) {
-	//taskId := req.URL.Query().Get("id")
-	//
-	//if taskId == "" || taskId == "0" || http.MethodPost != req.Method {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//taskRepository := repository.GetTasksRepository(c.Connector)
-	//intTaskId, _ := strconv.Atoi(taskId)
-	//
-	//
-	//if (worker.Task{}) == task {
-	//	http.NotFound(w, req)
-	//	return
-	//}
-	//
-	//task.Delete()
-	//
-	//http.Redirect(w, req, "/", http.StatusSeeOther)
+	taskId := req.URL.Query().Get("id")
+
+	if taskId == "" || taskId == "0" || http.MethodPost != req.Method {
+		http.NotFound(w, req)
+		return
+	}
+
+	intTaskId, _ := strconv.Atoi(taskId)
+	task := c.Container.TaskRepository().GetById(intTaskId)
+
+	if task == nil || *task == (model.Task{}) {
+		http.NotFound(w, req)
+		return
+	}
+
+	c.Container.TaskService().DeleteTask(task)
+
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 // Страница выполнения задачи

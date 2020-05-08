@@ -69,3 +69,16 @@ func (r *TasksGraylogRepository) Save(task *model.TaskGraylog) bool {
 
 	return true
 }
+
+// Удалить задачу по Id
+func (r *TasksGraylogRepository) DeleteById(id int) bool {
+	result, err := r.db.Exec("DELETE FROM tasks_graylog WHERE id = ?", id)
+	if err != nil {
+		log.Println("Не удалось удалить задачу для грейлога по ID")
+		return false
+	}
+
+	count, _ := result.RowsAffected()
+
+	return count > 0
+}

@@ -25,6 +25,10 @@ func GetTasksRepository(db *sql.DB) *TasksRepository {
 	return tasksRepository
 }
 
+func (r *TasksRepository) Db() *sql.DB {
+	return r.db
+}
+
 // Получить задачу по ID
 func (r *TasksRepository) GetById(id int) *model.Task {
 	row := r.db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
@@ -93,4 +97,17 @@ func (r *TasksRepository) Save(task *model.Task) bool {
 	}
 
 	return true
+}
+
+// Удалить задачу по Id
+func (r *TasksRepository) DeleteById(id int) bool {
+	result, err := r.db.Exec("DELETE FROM tasks WHERE id = ?", id)
+	if err != nil {
+		log.Println("Не удалось удалить задачу по ID")
+		return false
+	}
+
+	count, _ := result.RowsAffected()
+
+	return count > 0
 }

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/ddalogin/siren/app/domain/model"
 	"log"
 )
@@ -33,7 +32,6 @@ func (r *ResultsGraylogRepository) Save(resultTask *model.ResultGraylog) bool {
 			resultTask.TaskGraylogId(), resultTask.Title(), resultTask.Status(), resultTask.Message(), resultTask.Text(), resultTask.Count(), resultTask.GraylogLink(),
 		)
 		if err != nil {
-			fmt.Printf(err.Error())
 			log.Println("Не удалось сохранить результат задачи для грейлога.", err, resultTask)
 			return false
 		}
@@ -57,4 +55,17 @@ func (r *ResultsGraylogRepository) Save(resultTask *model.ResultGraylog) bool {
 	}
 
 	return true
+}
+
+// Удалить результаты задачи по Id
+func (r *ResultsGraylogRepository) DeleteByTaskId(id int) bool {
+	result, err := r.db.Exec("DELETE FROM results_graylog WHERE task_graylog_id = ?", id)
+	if err != nil {
+		log.Println("Не удалось удалить результаты задачи по её ID")
+		return false
+	}
+
+	count, _ := result.RowsAffected()
+
+	return count > 0
 }

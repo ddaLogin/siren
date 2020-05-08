@@ -44,6 +44,7 @@ func (s *GraylogService) RunTaskGraylog(task *model.Task) (result model.ResultGr
 	result.SetTask(task)
 	result.SetTaskGraylogId(taskGraylog.Id())
 	result.SetTitle(task.Title())
+	result.SetGraylogLink(s.buildGraylogUrl(taskGraylog))
 
 	esClient := elasticsearch.NewClient(s.config.Es)
 	response, err := esClient.Search(taskGraylog.Pattern(), taskGraylog.AggregateTime())
@@ -55,7 +56,6 @@ func (s *GraylogService) RunTaskGraylog(task *model.Task) (result model.ResultGr
 	} else {
 		result.SetStatus(model.STATUS_OK)
 		result.SetCount(response.Hits.Count)
-		result.SetGraylogLink(s.buildGraylogUrl(taskGraylog))
 		result.SetMessage("Кол-во сообщений в норме")
 
 		if result.Count() < taskGraylog.Min() {
@@ -77,6 +77,20 @@ func (s *GraylogService) RunTaskGraylog(task *model.Task) (result model.ResultGr
 	s.resultsGraylogRepository.Save(&result)
 
 	return
+}
+
+// Удалить задачу
+func (s *GraylogService) DeleteTask(task *model.Task) bool {
+
+	if !s.resultsGraylogRepository.DeleteByTaskId(task.Id()) {
+		return false
+	}
+
+	if !s.tasksGraylogRepository.DeleteById(task.Id()) {
+		return false
+	}
+
+	return true
 }
 
 // Собирает ссылку на грейлог

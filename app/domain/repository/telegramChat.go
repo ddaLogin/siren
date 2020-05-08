@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/ddalogin/siren/app/domain/model"
 	"log"
 )
@@ -46,7 +45,6 @@ func (r *TelegramChatRepository) Save(chat *model.TelegramChat) bool {
 			chat.Username(), chat.ChatId(),
 		)
 		if err != nil {
-			fmt.Printf(err.Error())
 			log.Println("Не удалось сохранить телеграм чат.", err, chat)
 			return false
 		}

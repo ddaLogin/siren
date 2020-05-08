@@ -111,13 +111,19 @@ func (r *ResultGraylog) IsNeedNotify() bool {
 // Собрать сообщение для уведомления в телеграме
 func (r *ResultGraylog) BuildTelegramNotify() *TelegramNotify {
 	var userNames []string
+	text := r.Text()
 	userNamesString := r.Task().Usernames()
 
 	if userNamesString != nil {
 		userNames = strings.Split(*userNamesString, ",")
 	}
+
+	if r.Status() == STATUS_ERROR {
+		text = "```" + text + "```"
+	}
+
 	message := fmt.Sprintf("*%s* \r\n %s \r\n %s \r\n [Смотреть сообщения](%s)",
-		r.Title(), r.Message(), r.Text(), r.GraylogLink(),
+		r.Title(), r.Message(), text, r.GraylogLink(),
 	)
 
 	return NewTelegramNotify(message, userNames)
