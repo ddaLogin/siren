@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 // Формат ответа эластика
@@ -27,6 +28,8 @@ func NewClient(host string) *Client {
 
 // Поиск
 func (c *Client) Search(pattern string, aggTime string) (response ElasticResponse, err error) {
+	pattern = strings.ReplaceAll(pattern, `"`, `\"`)
+
 	var jsonStr = []byte(`{
 		"query": {
 			"bool": {
