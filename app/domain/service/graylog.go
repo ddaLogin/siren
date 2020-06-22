@@ -107,10 +107,10 @@ func (s *GraylogService) buildGraylogUrl(task *model.TaskGraylog) string {
 	}
 
 	query := baseUrl.Query()
-	query.Add("rangetype", "absolute")
-	query.Add("from", time.Now().Add((time.Duration(aggTime)*time.Second)*-1).Format("2006-01-02 15:04:05"))
-	query.Add("to", time.Now().Format("2006-01-02 15:04:05"))
 	query.Add("q", task.Pattern())
+	query.Add("rangetype", "absolute")
+	query.Add("from", time.Now().Add((time.Duration(aggTime)*time.Second)*-1).Format("2006-01-02T15:04:05Z07:00"))
+	query.Add("to", time.Now().Format("2006-01-02T15:04:05Z07:00"))
 	baseUrl.RawQuery = query.Encode()
 
 	return baseUrl.String()
