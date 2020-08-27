@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"database/sql"
 	"github.com/ddalogin/siren/app/domain/model"
+	"github.com/ddalogin/siren/database"
 	"log"
 	"time"
 )
@@ -10,28 +10,23 @@ import (
 var tasksRepository *TasksRepository
 
 // Репозиторий для задач
-type TasksRepository struct {
-	db *sql.DB
-}
+type TasksRepository struct{}
 
 // Фабричный метод для репозитория задач
-func GetTasksRepository(db *sql.DB) *TasksRepository {
+func GetTasksRepository() *TasksRepository {
 	if tasksRepository == nil {
-		tasksRepository = &TasksRepository{
-			db: db,
-		}
+		tasksRepository = &TasksRepository{}
 	}
 
 	return tasksRepository
 }
 
-func (r *TasksRepository) Db() *sql.DB {
-	return r.db
-}
-
 // Получить задачу по ID
 func (r *TasksRepository) GetById(id int) *model.Task {
-	row := r.db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
+	db := database.Db()
+	defer db.Close()
+
+	row := db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
 	if row == nil {
 		log.Println("Не удалось найти задачу по ID", id)
 		return nil
@@ -44,7 +39,10 @@ func (r *TasksRepository) GetById(id int) *model.Task {
 
 // Получить задачи подходящих по времени к запуску
 func (r *TasksRepository) GetForRun(time time.Time) []*model.Task {
-	rows, err := r.db.Query("SELECT * FROM tasks WHERE enabled = 1 AND next_time <= ?", time.Format("2006-01-02 15:04:05"))
+	db := database.Db()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM tasks WHERE enabled = 1 AND next_time <= ?", time.Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println("Не удалось найти задачи для запуска", time)
 		return nil
@@ -56,7 +54,10 @@ func (r *TasksRepository) GetForRun(time time.Time) []*model.Task {
 
 // Получить все задачи
 func (r *TasksRepository) GetAll() []*model.Task {
-	rows, err := r.db.Query("SELECT * FROM tasks")
+	db := database.Db()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM tasks")
 	if err != nil {
 		log.Println("Не удалось найти все задачи")
 		return nil
@@ -68,7 +69,10 @@ func (r *TasksRepository) GetAll() []*model.Task {
 
 // Получить задачи для отчета
 func (r *TasksRepository) GetForReport() []*model.Task {
-	rows, err := r.db.Query("SELECT * FROM tasks WHERE enabled = 1 AND usernames IS NULL")
+	db := database.Db()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM tasks WHERE enabled = 1 AND usernames IS NULL")
 	if err != nil {
 		log.Println("Не удалось найти задачи для отчета")
 		return nil
@@ -80,7 +84,10 @@ func (r *TasksRepository) GetForReport() []*model.Task {
 
 // Удалить задачу по Id
 func (r *TasksRepository) DeleteById(id int) bool {
-	result, err := r.db.Exec("DELETE FROM tasks WHERE id = ?", id)
+	db := database.Db()
+	defer db.Close()
+
+	result, err := db.Exec("DELETE FROM tasks WHERE id = ?", id)
 	if err != nil {
 		log.Println("Не удалось удалить задачу по ID")
 		return false
@@ -93,8 +100,11 @@ func (r *TasksRepository) DeleteById(id int) bool {
 
 // Сохранить задачу
 func (r *TasksRepository) Save(task *model.Task) bool {
+	db := database.Db()
+	defer db.Close()
+
 	if task.Id() == 0 {
-		result, err := r.db.Exec(
+		result, err := db.Exec(
 			"INSERT INTO tasks (title, object_type, object_id, `interval`, enabled, usernames) VALUE (?, ?, ?, ?, ?, ?)",
 			task.Title(), task.ObjectType(), task.ObjectId(), task.Interval(), task.IsEnabled(), task.Usernames(),
 		)
@@ -111,7 +121,7 @@ func (r *TasksRepository) Save(task *model.Task) bool {
 
 		task.SetId(int(id))
 	} else {
-		_, err := r.db.Exec(
+		_, err := db.Exec(
 			"UPDATE tasks SET title = ?, object_type = ?, object_id = ?, `interval` = ?, next_time = ?, enabled = ?, usernames = ? WHERE id = ?",
 			task.Title(), task.ObjectType(), task.ObjectId(), task.Interval(), task.NextTime(), task.IsEnabled(), task.Usernames(), task.Id(),
 		)

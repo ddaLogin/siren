@@ -1,24 +1,20 @@
 package repository
 
 import (
-	"database/sql"
 	"github.com/ddalogin/siren/app/domain/model"
+	"github.com/ddalogin/siren/database"
 	"log"
 )
 
 var telegramChatRepository *TelegramChatRepository
 
 // Репозиторий для телеграм чатов
-type TelegramChatRepository struct {
-	db *sql.DB
-}
+type TelegramChatRepository struct{}
 
 // Фабричный метод для репозитория результатов задач грейлога
-func GetTelegramChatRepository(db *sql.DB) *TelegramChatRepository {
+func GetTelegramChatRepository() *TelegramChatRepository {
 	if telegramChatRepository == nil {
-		telegramChatRepository = &TelegramChatRepository{
-			db: db,
-		}
+		telegramChatRepository = &TelegramChatRepository{}
 	}
 
 	return telegramChatRepository
@@ -26,7 +22,10 @@ func GetTelegramChatRepository(db *sql.DB) *TelegramChatRepository {
 
 // Получить чат по юзернейму
 func (r *TelegramChatRepository) GetByUserName(username string) *model.TelegramChat {
-	row := r.db.QueryRow("SELECT * FROM telegram_chats WHERE username = ?", username)
+	db := database.Db()
+	defer db.Close()
+
+	row := db.QueryRow("SELECT * FROM telegram_chats WHERE username = ?", username)
 	if row == nil {
 		log.Println("Не удалось найти чат по юзернейму", username)
 		return nil
@@ -39,8 +38,11 @@ func (r *TelegramChatRepository) GetByUserName(username string) *model.TelegramC
 
 // Сохранить телеграм чат
 func (r *TelegramChatRepository) Save(chat *model.TelegramChat) bool {
+	db := database.Db()
+	defer db.Close()
+
 	if chat.Id() == 0 {
-		result, err := r.db.Exec(
+		result, err := db.Exec(
 			"INSERT INTO telegram_chats (username, chat_id) VALUE (?, ?)",
 			chat.Username(), chat.ChatId(),
 		)
@@ -57,7 +59,7 @@ func (r *TelegramChatRepository) Save(chat *model.TelegramChat) bool {
 
 		chat.SetId(int(id))
 	} else {
-		_, err := r.db.Exec(
+		_, err := db.Exec(
 			"UPDATE telegram_chats SET username = ?, chat_id = ?, created_at = ? WHERE id = ?",
 			chat.Username(), chat.ChatId(), chat.CreatedAt(), chat.Id(),
 		)

@@ -1,24 +1,20 @@
 package repository
 
 import (
-	"database/sql"
 	"github.com/ddalogin/siren/app/domain/model"
+	"github.com/ddalogin/siren/database"
 	"log"
 )
 
 var tasksGraylogRepository *TasksGraylogRepository
 
 // Репозиторий для задач грейлога
-type TasksGraylogRepository struct {
-	db *sql.DB
-}
+type TasksGraylogRepository struct{}
 
 // Фабричный метод для репозитория задач грейлога
-func GetTasksGraylogRepository(db *sql.DB) *TasksGraylogRepository {
+func GetTasksGraylogRepository() *TasksGraylogRepository {
 	if tasksGraylogRepository == nil {
-		tasksGraylogRepository = &TasksGraylogRepository{
-			db: db,
-		}
+		tasksGraylogRepository = &TasksGraylogRepository{}
 	}
 
 	return tasksGraylogRepository
@@ -26,7 +22,10 @@ func GetTasksGraylogRepository(db *sql.DB) *TasksGraylogRepository {
 
 // Получить задачу по ID
 func (r *TasksGraylogRepository) GetById(id int) *model.TaskGraylog {
-	row := r.db.QueryRow("SELECT * FROM tasks_graylog WHERE id = ?", id)
+	db := database.Db()
+	defer db.Close()
+
+	row := db.QueryRow("SELECT * FROM tasks_graylog WHERE id = ?", id)
 	if row == nil {
 		log.Println("Не удалось найти задачу для грейлога по ID", id)
 		return nil
@@ -39,8 +38,11 @@ func (r *TasksGraylogRepository) GetById(id int) *model.TaskGraylog {
 
 // Сохранить задачу
 func (r *TasksGraylogRepository) Save(task *model.TaskGraylog) bool {
+	db := database.Db()
+	defer db.Close()
+
 	if task.Id() == 0 {
-		result, err := r.db.Exec(
+		result, err := db.Exec(
 			"INSERT INTO tasks_graylog (pattern, aggregate_time, min, max) VALUE (?, ?, ?, ?)",
 			task.Pattern(), task.AggregateTime(), task.Min(), task.Max(),
 		)
@@ -57,7 +59,7 @@ func (r *TasksGraylogRepository) Save(task *model.TaskGraylog) bool {
 
 		task.SetId(int(id))
 	} else {
-		_, err := r.db.Exec(
+		_, err := db.Exec(
 			"UPDATE tasks_graylog SET pattern = ?, aggregate_time = ?, min = ?, max = ? WHERE id = ?",
 			task.Pattern(), task.AggregateTime(), task.Min(), task.Max(), task.Id(),
 		)
@@ -72,7 +74,10 @@ func (r *TasksGraylogRepository) Save(task *model.TaskGraylog) bool {
 
 // Удалить задачу по Id
 func (r *TasksGraylogRepository) DeleteById(id int) bool {
-	result, err := r.db.Exec("DELETE FROM tasks_graylog WHERE id = ?", id)
+	db := database.Db()
+	defer db.Close()
+
+	result, err := db.Exec("DELETE FROM tasks_graylog WHERE id = ?", id)
 	if err != nil {
 		log.Println("Не удалось удалить задачу для грейлога по ID")
 		return false

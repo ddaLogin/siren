@@ -54,6 +54,11 @@ func (c *Client) Search(pattern string, aggTime string) (response ElasticRespons
 		}
 	}`)
 	req, err := http.NewRequest("POST", c.host+"_search", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		log.Println("Не удалось собрать запрос в ElasticSearch.", err, req)
+		return
+	}
+	req.Header.Add("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

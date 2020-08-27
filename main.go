@@ -27,10 +27,9 @@ func init() {
 // Начало работы
 func main() {
 	config := loadConfig()
-	connector := database.NewConnector(config.Db)
-	defer connector.Close()
+	database.InitDatabase(config.Db)
 
-	cnt := container.NewContainer(config.Graylog, config.Notify, connector)
+	cnt := container.NewContainer(config.Graylog, config.Notify)
 
 	wrk := worker.NewWorker(config.Notify.Report, cnt.TaskService(), cnt.TaskRepository(), cnt.NotifyService(), cnt.ReportService())
 	go wrk.Run()

@@ -34,18 +34,13 @@ func (s *TaskService) RunTask(task *model.Task) (result interfaces.TaskResult) {
 
 // Удалить задачу
 func (s *TaskService) DeleteTask(task *model.Task) bool {
-	transaction, _ := s.taskRepository.Db().Begin()
-
 	if !s.taskRepository.DeleteById(task.Id()) {
-		transaction.Rollback()
 		return false
 	}
 
 	if !s.graylogService.DeleteTask(task) {
-		transaction.Rollback()
 		return false
 	}
 
-	transaction.Commit()
 	return true
 }

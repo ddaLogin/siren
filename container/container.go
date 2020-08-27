@@ -1,7 +1,6 @@
 package container
 
 import (
-	"database/sql"
 	"github.com/ddalogin/siren/app/domain/repository"
 	"github.com/ddalogin/siren/app/domain/service"
 )
@@ -10,8 +9,6 @@ import (
 type Container struct {
 	graylogConfig service.GraylogConfig
 	notifyConfig  service.NotifyConfig
-
-	connection *sql.DB
 
 	taskRepository           *repository.TasksRepository
 	taskGraylogRepository    *repository.TasksGraylogRepository
@@ -25,21 +22,13 @@ type Container struct {
 }
 
 // Конструктор контейнера
-func NewContainer(graylogConfig service.GraylogConfig, notifyConfig service.NotifyConfig, connection *sql.DB) *Container {
-	return &Container{graylogConfig: graylogConfig, notifyConfig: notifyConfig, connection: connection}
-}
-
-func (c *Container) Connection() *sql.DB {
-	return c.connection
-}
-
-func (c *Container) SetConnection(connection *sql.DB) {
-	c.connection = connection
+func NewContainer(graylogConfig service.GraylogConfig, notifyConfig service.NotifyConfig) *Container {
+	return &Container{graylogConfig: graylogConfig, notifyConfig: notifyConfig}
 }
 
 func (c *Container) TaskRepository() *repository.TasksRepository {
 	if c.taskRepository == nil {
-		c.SetTaskRepository(repository.GetTasksRepository(c.connection))
+		c.SetTaskRepository(repository.GetTasksRepository())
 	}
 
 	return c.taskRepository
@@ -51,7 +40,7 @@ func (c *Container) SetTaskRepository(taskRepository *repository.TasksRepository
 
 func (c *Container) TaskGraylogRepository() *repository.TasksGraylogRepository {
 	if c.taskGraylogRepository == nil {
-		c.SetTaskGraylogRepository(repository.GetTasksGraylogRepository(c.connection))
+		c.SetTaskGraylogRepository(repository.GetTasksGraylogRepository())
 	}
 
 	return c.taskGraylogRepository
@@ -63,7 +52,7 @@ func (c *Container) SetTaskGraylogRepository(taskGraylogRepository *repository.T
 
 func (c *Container) ResultsGraylogRepository() *repository.ResultsGraylogRepository {
 	if c.resultsGraylogRepository == nil {
-		c.SetResultsGraylogRepository(repository.GetResultsGraylogRepository(c.connection))
+		c.SetResultsGraylogRepository(repository.GetResultsGraylogRepository())
 	}
 
 	return c.resultsGraylogRepository
@@ -75,7 +64,7 @@ func (c *Container) SetResultsGraylogRepository(resultsGraylogRepository *reposi
 
 func (c *Container) TelegramChatRepository() *repository.TelegramChatRepository {
 	if c.telegramChatRepository == nil {
-		c.SetTelegramChatRepository(repository.GetTelegramChatRepository(c.connection))
+		c.SetTelegramChatRepository(repository.GetTelegramChatRepository())
 	}
 
 	return c.telegramChatRepository
